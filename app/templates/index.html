@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美以伊战争建模预测平台</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/styles.css') }}">
+</head>
+<body>
+    <div class="shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <span class="brand-kicker">Conflict Lab</span>
+                <h1>美以伊战争建模预测平台</h1>
+                <p>基于事件大数据、舆情分析、战役态势推理与生成式推演的全链路研究原型。</p>
+            </div>
+
+            <section class="meta-card">
+                <h2>数据集元信息</h2>
+                <dl>
+                    <div>
+                        <dt>数据集</dt>
+                        <dd>{{ dashboard.metadata.dataset_name }}</dd>
+                    </div>
+                    <div>
+                        <dt>生成日期</dt>
+                        <dd>{{ dashboard.metadata.generated_on }}</dd>
+                    </div>
+                    <div>
+                        <dt>方法</dt>
+                        <dd>{{ dashboard.metadata.method }}</dd>
+                    </div>
+                </dl>
+            </section>
+
+            <section class="meta-card">
+                <h2>研究闭环</h2>
+                <ol class="steps">
+                    <li>事件与舆情数据融合</li>
+                    <li>战略层冲突概率预警</li>
+                    <li>战役层目标威胁感知</li>
+                    <li>决策层多智能体推演</li>
+                    <li>综合指数与处置建议</li>
+                </ol>
+            </section>
+        </aside>
+
+        <main class="main">
+            <header class="hero">
+                <div class="hero-copy">
+                    <span class="eyebrow">三层协同预测架构</span>
+                    <h2>从风险预警到决策模拟</h2>
+                    <p id="hero-summary">{{ dashboard.integrated.recommendations[0] }}</p>
+                </div>
+                <div class="hero-score">
+                    <span>综合风险指数</span>
+                    <strong id="overall-score">{{ dashboard.integrated.overall_score }}</strong>
+                    <em id="overall-badge" class="badge badge-{{ dashboard.integrated.overall_level|lower }}">{{ dashboard.integrated.overall_level }}</em>
+                </div>
+            </header>
+
+            <section class="metrics-grid">
+                <article class="metric">
+                    <h3>战略层预警</h3>
+                    <strong id="strategic-prob">{{ dashboard.strategic.risk_probability }}</strong>
+                    <span id="strategic-badge" class="badge badge-{{ dashboard.strategic.risk_level|lower }}">{{ dashboard.strategic.risk_level }}</span>
+                    <p id="strategic-summary">{{ dashboard.strategic.summary }}</p>
+                </article>
+                <article class="metric">
+                    <h3>战役层威胁</h3>
+                    <strong id="operational-threat">{{ dashboard.operational.threat_index }}</strong>
+                    <span id="operational-badge" class="badge badge-{{ dashboard.operational.risk_level|lower }}">{{ dashboard.operational.risk_level }}</span>
+                    <p id="operational-summary">{{ dashboard.operational.summary }}</p>
+                </article>
+                <article class="metric">
+                    <h3>决策层一致性</h3>
+                    <strong id="simulation-score">{{ dashboard.simulation.consistency_score }}</strong>
+                    <span class="badge badge-blue">Scenario</span>
+                    <p id="simulation-summary">{{ dashboard.simulation.summary }}</p>
+                </article>
+            </section>
+
+            <section class="panel-grid">
+                <section class="panel">
+                    <div class="panel-head">
+                        <h3>月度冲突信号</h3>
+                        <button id="refresh-button" type="button">刷新数据</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table id="timeline-table">
+                            <thead>
+                                <tr>
+                                    <th>月份</th>
+                                    <th>Q1</th>
+                                    <th>Q2</th>
+                                    <th>Q3</th>
+                                    <th>Q4</th>
+                                    <th>负面情绪</th>
+                                    <th>代理人活动</th>
+                                    <th>军事机动</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in dashboard.timeline[-8:] %}
+                                <tr>
+                                    <td>{{ row.month }}</td>
+                                    <td>{{ row.q1 }}</td>
+                                    <td>{{ row.q2 }}</td>
+                                    <td>{{ row.q3 }}</td>
+                                    <td>{{ row.q4 }}</td>
+                                    <td>{{ row.negative_sentiment }}</td>
+                                    <td>{{ row.proxy_activity }}</td>
+                                    <td>{{ row.military_mobility }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-head">
+                        <h3>关键驱动因子</h3>
+                    </div>
+                    <div id="factor-list" class="factor-list">
+                        {% for factor in dashboard.strategic.top_factors %}
+                        <article class="factor">
+                            <div>
+                                <h4>{{ factor.label }}</h4>
+                                <p>{{ factor.description }}</p>
+                            </div>
+                            <strong>{{ factor.score }}</strong>
+                        </article>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section class="panel panel-wide">
+                    <div class="panel-head">
+                        <h3>战役层目标优先级</h3>
+                    </div>
+                    <div class="target-grid" id="target-grid">
+                        {% for target in dashboard.operational.targets %}
+                        <article class="target-card">
+                            <div class="target-head">
+                                <h4>{{ target.name }}</h4>
+                                <span class="badge badge-{{ 'red' if target.priority_tier == 'Tier 1' else 'orange' if target.priority_tier == 'Tier 2' else 'blue' }}">{{ target.priority_tier }}</span>
+                            </div>
+                            <p>{{ target.type }}</p>
+                            <dl>
+                                <div><dt>意图置信度</dt><dd>{{ target.intent_confidence }}</dd></div>
+                                <div><dt>威胁指数</dt><dd>{{ target.threat }}</dd></div>
+                                <div><dt>价值评分</dt><dd>{{ target.value_score }}</dd></div>
+                            </dl>
+                        </article>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-head">
+                        <h3>决策层情景推演</h3>
+                    </div>
+                    <div id="scenario-list" class="scenario-list">
+                        {% for scenario in dashboard.simulation.scenarios %}
+                        <article class="scenario">
+                            <div class="scenario-top">
+                                <h4>{{ scenario.name }}</h4>
+                                <strong>{{ scenario.probability }}</strong>
+                            </div>
+                            <p>{{ scenario.summary }}</p>
+                        </article>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-head">
+                        <h3>处置建议</h3>
+                    </div>
+                    <ul id="recommendation-list" class="recommendation-list">
+                        {% for item in dashboard.integrated.recommendations %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </section>
+
+                <section class="panel panel-wide">
+                    <div class="panel-head">
+                        <h3>三方智能体约束画像</h3>
+                    </div>
+                    <div class="agent-grid">
+                        {% for agent in dashboard.simulation.agent_briefs %}
+                        <article class="agent-card">
+                            <h4>{{ agent.agent }}</h4>
+                            <p><span>偏好</span>{{ agent.bias }}</p>
+                            <p><span>约束</span>{{ agent.constraint }}</p>
+                        </article>
+                        {% endfor %}
+                    </div>
+                </section>
+            </section>
+        </main>
+    </div>
+
+    <script id="dashboard-data" type="application/json">{{ dashboard|tojson }}</script>
+    <script src="{{ url_for('static', path='js/app.js') }}"></script>
+</body>
+</html>
